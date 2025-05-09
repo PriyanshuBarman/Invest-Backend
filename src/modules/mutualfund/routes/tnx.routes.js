@@ -5,4 +5,4 @@ import { isAuthenticated } from "../../../middlewares/isAuthenticated.js";
 export const tnxRoutes = Router();
 
 tnxRoutes.get("/", isAuthenticated, fetchPortfolioTnx);
-tnxRoutes.get("/:fund_code", isAuthenticated, fetchFundTnx);
+tnxRoutes.get("/:fundCode", isAuthenticated, fetchFundTnx);

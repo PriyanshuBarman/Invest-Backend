@@ -3,7 +3,7 @@ import { db } from "../../../config/db.js";
 export const holdingRepository = {
   get: async (userId, symbol) => {
     const [holdings] = await db.execute(
-      "SELECT * FROM stock_holdings WHERE user_id = ? AND symbol = ? ORDER BY purchase_date ASC",
+      "SELECT * FROM stock_holdings WHERE userId = ? AND symbol = ? ORDER BY purchaseDate ASC",
       [userId, symbol]
     );
     return holdings.length ? holdings : null;
@@ -11,7 +11,7 @@ export const holdingRepository = {
 
   add: async ({ userId, symbol, stockName, investmentAmt, purchasePrice, purchaseQty }) => {
     await db.execute(
-      "INSERT INTO stock_holdings (user_id, symbol, stock_name, investment_amt, purchase_price, qty) VALUES(?,?,?,?,?,?)",
+      "INSERT INTO stock_holdings (userId, symbol, stock_name, investment_amt, purchase_price, qty) VALUES(?,?,?,?,?,?)",
       [userId, symbol, stockName, investmentAmt, purchasePrice, purchaseQty]
     );
   },
@@ -25,7 +25,7 @@ export const holdingRepository = {
   },
 
   deleteByCode: async (userId, symbol) => {
-    await db.execute("DELETE FROM stock_holdings WHERE user_id = ? AND symbol = ?", [userId, symbol]);
+    await db.execute("DELETE FROM stock_holdings WHERE userId = ? AND symbol = ?", [userId, symbol]);
   },
 
   deleteById: async (holdingId) => {

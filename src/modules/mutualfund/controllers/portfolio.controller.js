@@ -1,59 +1,47 @@
 import { overallPortfolioRepo } from "../../../shared/repositories/overallPortFolio.repository.js";
+import { apiError } from "../../../utils/apiError.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
 import { portfolioRepository } from "../repositories/portfolio.repository.js";
 
-export const fetchPortfolio = async (req, res) => {
+export const fetchPortfolio = asyncHandler(async (req, res) => {
   const { userId } = req.user;
-  const { sort_by, order_by, fund_type } = req.query;
+  const { sort_by, order_by, fundType } = req.query;
 
-  try {
-    const portfolio = await portfolioRepository.getAll({
-      userId,
-      sort_by,
-      order_by,
-      fund_type,
-    });
+  const portfolio = await portfolioRepository.getAll({
+    userId,
+    sort_by,
+    order_by,
+    fundType,
+  });
 
-    if (!portfolio) {
-      return res.status(400).json({ success: false, message: "Not invested" });
-    }
+  if (!portfolio) throw new apiError(400, "Not invested");
 
-    return res.status(200).json({ success: true, sort_by, order_by, fund_type, portfolio });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
+  return res
+    .status(200)
+    .json({ success: true, sort_by, order_by, fundType, portfolio });
+});
 
-export const fetchFund = async (req, res) => {
+export const fetchFund = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { fundCode } = req.params;
 
-  if (!fundCode) {
-    return res.status(400).json({ success: false, message: "fundCode required " });
-  }
+  if (!fundCode) throw new apiError(400, "fundCode is required");
 
-  try {
-    const fund = await portfolioRepository.getFund(userId, fundCode);
-    if (!fund) {
-      return res.status(400).json({ success: false, message: "Fund not found or not invested" });
-    }
+  const fund = await portfolioRepository.getFund(userId, fundCode);
+  if (!fund) throw new apiError(404, "Not invested");
 
-    return res.status(200).json({ success: true, fund });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
+  return res.status(200).json({ success: true, fund });
+});
 
-export const fetchOverallPortfolio = async (req, res) => {
+export const fetchOverallPortfolio = asyncHandler(async (req, res) => {
   const { userId } = req.user;
-  try {
-    const summary = await overallPortfolioRepo.get({ userId, portfolioType: "MF" }); // shared
 
-    if (!summary) {
-      return res.status(404).json({ success: false, message: "Not invested yet" });
-    }
+  const summary = await overallPortfolioRepo.get({
+    userId,
+    portfolioType: "MF",
+  }); // shared
 
-    return res.status(200).json({ success: true, summary });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
+  if (!summary) throw new apiError(404, "Not invested yet");
+
+  return res.status(200).json({ success: true, summary });
+});

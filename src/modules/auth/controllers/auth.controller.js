@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import { userRepository } from "../../user/repositories/user.repository.js";
-import { ApiError } from "../../../utils/apiError.js";
+import { apiError } from "../../../utils/apiError.js";
 
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -10,7 +10,7 @@ export const register = async (req, res) => {
   try {
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
-      throw new ApiError(400, "User Already Exists");
+      throw new apiError(400, "User Already Exists");
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
@@ -43,12 +43,12 @@ export const login = async (req, res) => {
   try {
     const existingUser = await userRepository.findByEmail(email);
     if (!existingUser) {
-      throw new ApiError(400, "email or password is invalid");
+      throw new apiError(400, "email or password is invalid");
     }
 
     const isMatch = await bcrypt.compare(password, existingUser.password);
     if (!isMatch) {
-      throw new ApiError(400, "email or password is invalid");
+      throw new apiError(400, "email or password is invalid");
     }
 
     const token = jwt.sign({ id: existingUser.id }, process.env.JWT_SECRET, {
@@ -82,5 +82,3 @@ export const logout = (req, res) => {
     res.status(error.statusCode || 500).json({ message: error.message });
   }
 };
-
-

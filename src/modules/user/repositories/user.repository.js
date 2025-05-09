@@ -4,12 +4,12 @@ export const userRepository = {
     const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
     return rows[0] || null;
   },
-  create: async ({name, email, hashPassword = null , picture = null}) => {
+  create: async ({ name, email, hashPassword = null, picture = null }) => {
     const [newUser] = await db.execute("INSERT INTO users (name,email,password,avatar) VALUES (?,?,?,?)", [
       name,
       email,
       hashPassword,
-      picture
+      picture,
     ]);
     return newUser;
   },
@@ -17,8 +17,8 @@ export const userRepository = {
     const [users] = await db.execute("SELECT * FROM users");
     return users;
   },
-  findById: async (user_id) => {
-    const [user] = await db.execute("SELECT * FROM users WHERE id = ?", [user_id]);
+  findById: async (userId) => {
+    const [user] = await db.execute("SELECT * FROM users WHERE id = ?", [userId]);
     return user[0];
   },
 };

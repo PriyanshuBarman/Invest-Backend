@@ -1,7 +1,7 @@
 export const validateQuery = (req, res, next) => {
   const { sort_by, order_by } = req.query;
 
-  const validSortOptions = ["invested_amt", "mv", "pnl", "roi", "updated_at"];
+  const validSortOptions = ["investedAmt", "mv", "pnl", "roi", "updated_at"];
   const validOrderOptions = ["asc", "desc"];
 
   if (sort_by && !validSortOptions.includes(sort_by)) {

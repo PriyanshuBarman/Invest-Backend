@@ -1,4 +1,4 @@
-import { ApiError } from "../../../utils/apiError.js";
+import { apiError } from "../../../utils/apiError.js";
 import { holdingRepository, portfolioRepository } from "../repositories/index.repository.js";
 import { tnxRepository, walletRepository } from "../../../shared/repositories/index.repository.js";
 import { subtractOverallPortfolio } from "../../../shared/services/overallPortfolio.service.js";
@@ -9,10 +9,10 @@ import { fifoRedemption } from "./fifo.service.js";
 export const processSell = async (userId, symbol, sellQty = null) => {
   const stock = await portfolioRepository.getStock(userId, symbol);
   if (!stock) {
-    throw new ApiError(400, "Stock Not Found");
+    throw new apiError(400, "Stock Not Found");
   }
   if (sellQty > stock.available_qty) {
-    throw new ApiError(400, "Sell qty cannot be greater than available qty");
+    throw new apiError(400, "Sell qty cannot be greater than available qty");
   }
 
   sellQty = sellQty ? sellQty : stock.available_qty;
@@ -25,7 +25,7 @@ export const processSell = async (userId, symbol, sellQty = null) => {
   } else {
     const costBasis = await fifoRedemption(userId, symbol, sellQty);
 
-    const updatedInvestedAmt = stock.invested_amt - costBasis;
+    const updatedInvestedAmt = stock.investedAmt - costBasis;
     const updatedMv = stock.mv - sellAmount;
     const updatedQty = stock.available_qty - sellQty;
     const updatedPnl = updatedMv - updatedInvestedAmt;

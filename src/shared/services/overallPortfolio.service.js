@@ -8,23 +8,24 @@ export const addToOverallPortfolio = async ({ userId, investmentAmt, portfolioTy
     return;
   }
 
-  const updatedTotalInv = summary.total_inv + investmentAmt;
-  const updatedTotalMv = summary.total_inv + investmentAmt;
+  const updatedTotalInv = summary.totalInv + investmentAmt;
+  const updatedTotalMv = summary.totalInv + investmentAmt;
   const updatedTotalPnl = updatedTotalMv - updatedTotalInv;
   const updatedTotalRoi = (updatedTotalPnl / updatedTotalInv) * 100;
 
   overallPortfolioRepo.update({userId,portfolioType,updatedTotalInv,updatedTotalMv,updatedTotalPnl,updatedTotalRoi}); // prettier-ignore
 };
 
+
 export const subtractOverallPortfolio = async ({ userId, costBasis = null, sellAmount, portfolioType }) => {
   const summary = await overallPortfolioRepo.get({ userId, portfolioType });
-  if (sellAmount === summary.total_mv) {
+  if (sellAmount === summary.totalMv) {
     await overallPortfolioRepo.delete({ userId, portfolioType });
     return;
   }
 
-  const updatedTotalInv = costBasis ? summary.total_inv - costBasis : summary.total_inv - sellAmount;
-  const updatedTotalMv = summary.total_inv - sellAmount;
+  const updatedTotalInv = costBasis ? summary.totalInv - costBasis : summary.totalInv - sellAmount;
+  const updatedTotalMv = summary.totalInv - sellAmount;
   const updatedTotalPnl = updatedTotalMv - updatedTotalInv;
   const updatedTotalRoi = (updatedTotalPnl / updatedTotalInv) * 100;
 

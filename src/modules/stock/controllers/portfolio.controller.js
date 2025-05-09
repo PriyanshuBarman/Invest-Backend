@@ -1,57 +1,47 @@
 import { overallPortfolioRepo } from "../../../shared/repositories/overallPortFolio.repository.js";
+import { apiError } from "../../../utils/apiError.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
 import { portfolioRepository } from "../repositories/portfolio.repository.js";
 
-export const fetchPortfolio = async (req, res) => {
+export const fetchPortfolio = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { sort_by, order_by } = req.query;
 
-  try {
-    const portfolio = await portfolioRepository.getAllStock({
-      userId,
-      sort_by,
-      order_by,
-    });
+  const portfolio = await portfolioRepository.getAllStock({
+    userId,
+    sort_by,
+    order_by,
+  });
 
-    if (!portfolio) {
-      return res.status(400).json({ success: false, message: "Not invested" });
-    }
+  if (!portfolio) throw new apiError(400, "No Portfolio Found");
 
-    return res.status(200).json({ success: true, sort_by, order_by, portfolio });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
+  return res.status(200).json({ success: true, sort_by, order_by, portfolio });
+});
 
-export const fetchStock = async (req, res) => {
+
+export const fetchStock = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { symbol } = req.params;
-  if (!symbol) {
-    return res.status(400).json({ success: false, message: "symbol required " });
-  }
 
-  try {
-    const stock = await portfolioRepository.getStock(userId, symbol);
-    if (!stock) {
-      return res.status(400).json({ success: false, message: "stock not found or not invested" });
-    }
+  if (!symbol) throw new apiError(400, "symbol is required");
 
-    return res.status(200).json({ success: true, stock });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
+  const stock = await portfolioRepository.getStock(userId, symbol);
+  
+  if (!stock) throw new apiError(400, "Stock Not Found in Portfolio");
 
-export const fetchOverallPortfolio = async (req, res) => {
+  return res.status(200).json({ success: true, stock });
+});
+
+
+export const fetchOverallPortfolio = asyncHandler(async (req, res) => {
   const { userId } = req.user;
-  try {
-    const summary = await overallPortfolioRepo.get({ userId, portfolioType: "STOCK" }); // shared
 
-    if (!summary) {
-      return res.status(404).json({ success: false, message: "Not invested yet" });
-    }
+  const summary = await overallPortfolioRepo.get({
+    userId,
+    portfolioType: "STOCK",
+  }); // shared
 
-    return res.status(200).json({ success: true, summary });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
+  if (!summary) throw new apiError(400, "No Portfolio Found");
+
+  return res.status(200).json({ success: true, summary });
+});

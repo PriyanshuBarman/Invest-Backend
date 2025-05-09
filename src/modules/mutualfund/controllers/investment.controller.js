@@ -1,18 +1,14 @@
+import { asyncHandler } from "../../../utils/asyncHandler.js";
 import { processInvestment } from "../services/investment.service.js";
 
-export const handleInvest = async (req, res, next) => {
+export const handleInvest = asyncHandler(async (req, res) => {
   const { userId } = req.user;
+  const { investmentAmt, fundCode, fundName, purchaseNav, fundType } = req.body;
 
-  // req.bod contains (investmentAmt, fundCode, fundName, purchaseNav, fundType )
-  try {
-    await processInvestment({ userId, ...req.body });
-    return res.status(200).json({
-      success: true,
-      message: "Investment processed successfully",
-    });
-  } catch (error) {
-    console.log("error", error);
-    next(error);
-    // res.status(error.statusCode || 500).json({ success: false, message: error.message });
-  }
-};
+  await processInvestment({ userId, investmentAmt, fundCode, fundName, purchaseNav, fundType });
+
+  return res.status(200).json({
+    success: true,
+    message: "Investment processed successfully",
+  });
+});

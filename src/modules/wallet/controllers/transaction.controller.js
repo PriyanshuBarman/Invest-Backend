@@ -1,16 +1,13 @@
 import { tnxRepository } from "../../../shared/repositories/tnx.repository.js";
+import { apiError } from "../../../utils/apiError.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
 
-export const fetchAllTransactions = async (req, res) => {
-  const { user_id } = req.user;
-  try {
-    const tnx = await tnxRepository.getAll(user_id); // shared
+export const fetchAllTransactions = asyncHandler(async (req, res) => {
+  const { userId } = req.user;
 
-    if (!tnx) {
-      return res.status(404).json({ success: false, message: "No transactions found" });
-    }
+  const tnx = await tnxRepository.getAll(userId); // shared
 
-    return res.status(200).json({ success: true, tnx });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
+  if (!tnx) throw new apiError(404, "No transactions found");
+
+  return res.status(200).json({ success: true, tnx });
+});

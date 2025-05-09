@@ -1,39 +1,35 @@
+import { apiError } from "../../../utils/apiError.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
 import { processSell } from "../services/sell.service.js";
 
-export const handleSell = async (req, res) => {
+export const handleSell = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { symbol } = req.params;
   const { sellQty } = req.body;
 
-  if (!symbol) {
-    return res.status(400).json({ success: false, message: "symbol required" });
-  }
-  if (!sellQty) {
-    return res.status(400).json({ success: false, message: "sellQty required" });
-  }
-  if (isNaN(sellQty) || sellQty <= 0 || !Number.isInteger(sellQty)) {
-    return res.status(400).json({ success: false, message: "Invalid sell qty" });
-  }
+  if (!symbol) throw new apiError(400, "symbol required");
 
-  try {
-    await processSell(userId, symbol, sellQty);
-    return res.status(200).json({ success: true, message: "sold out successful" });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ success: false, message: error.message });
-  }
-};
+  if (!sellQty) throw new apiError(400, "sellQty required");
 
-export const handleSellAllQty = async (req, res) => {
+  if (isNaN(sellQty) || sellQty <= 0 || !Number.isInteger(sellQty))
+    throw new apiError(400, "Invalid sellQty");
+
+  await processSell(userId, symbol, sellQty);
+
+  return res
+    .status(200)
+    .json({ success: true, message: "sold out successful" });
+});
+
+export const handleSellAllQty = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { symbol } = req.params;
-  if (!symbol) {
-    return res.status(400).json({ success: false, message: "symbol required" });
-  }
 
-  try {
-    await processSell(userId, symbol);
-    return res.status(200).json({ success: true, message: "All qty sold out successfully" });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ success: false, message: error.message });
-  }
-};
+  if (!symbol) throw new apiError(400, "symbol required");
+
+  await processSell(userId, symbol);
+
+  return res
+    .status(200)
+    .json({ success: true, message: "All qty sold out successfully" });
+});

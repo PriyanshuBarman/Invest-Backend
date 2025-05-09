@@ -1,6 +1,5 @@
 export const registerValidator = (req, res, next) => {
   let { name, email, password } = req.body;
-  console.log(name, email, password)
 
   name = name.trim();
   email = email.trim().toLowerCase();

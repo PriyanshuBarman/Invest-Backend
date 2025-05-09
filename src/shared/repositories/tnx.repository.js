@@ -2,12 +2,12 @@ import { db } from "../../config/db.js";
 
 export const tnxRepository = {
   getAll: async (userId) => {
-    const [tnx] = await db.execute(`SELECT * FROM transactions WHERE user_id = ?`, [userId]);
+    const [tnx] = await db.execute(`SELECT * FROM transactions WHERE userId = ?`, [userId]);
     return tnx.length ? tnx : null;
   },
 
   getByCode: async (userId, code) => {
-    const [tnx] = await db.execute(`SELECT * FROM transactions WHERE user_id = ? AND code = ?`, [
+    const [tnx] = await db.execute(`SELECT * FROM transactions WHERE userId = ? AND code = ?`, [
       userId,
       code,
     ]);
@@ -15,7 +15,7 @@ export const tnxRepository = {
   },
 
   getByPortfolio: async ({ userId, portfolioType }) => {
-    const [tnx] = await db.execute(`SELECT * FROM transactions WHERE user_id = ? AND asset =  ?`, [
+    const [tnx] = await db.execute(`SELECT * FROM transactions WHERE userId = ? AND asset =  ?`, [
       userId,
       portfolioType,
     ]);
@@ -24,7 +24,7 @@ export const tnxRepository = {
 
   purchase: async ({ asset, userId, tnxAmount, code, name, purchasePrice, purchaseQty }) => {
     await db.execute(
-      `INSERT INTO transactions (asset, user_id, tnx_amount, code, name, price, qty, tnx_type) 
+      `INSERT INTO transactions (asset, userId, tnxAmount, code, name, price, qty, tnxType) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [asset, userId, tnxAmount, code, name, purchasePrice, purchaseQty, "INVEST"]
     );
@@ -32,14 +32,14 @@ export const tnxRepository = {
 
   sell: async ({ asset, userId, tnxAmount, code, name, sellPrice, sellQty }) => {
     await db.execute(
-      `INSERT INTO transactions (asset, user_id, tnx_amount, code, name, price, qty, tnx_type) 
+      `INSERT INTO transactions (asset, userId, tnxAmount, code, name, price, qty, tnxType) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [asset, userId, tnxAmount, code, name, sellPrice, sellQty, "REDEEM"]
     );
   },
 
   deposit: async (userId, tnxAmount) => {
-    await db.execute(`INSERT INTO transactions (user_id, tnx_amount, tnx_type) VALUES (?, ?, ?)`, [
+    await db.execute(`INSERT INTO transactions (userId, tnxAmount, tnxType) VALUES (?, ?, ?)`, [
       userId,
       tnxAmount,
       "DEPOSIT",
