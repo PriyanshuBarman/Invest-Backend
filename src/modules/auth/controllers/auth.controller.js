@@ -57,15 +57,11 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 export const logout = (req, res) => {
-  try {
-    return res
-      .clearCookie("token", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-      })
-      .status(200)
-      .json({ success: true, message: "User Logged Out Successfully" });
-  } catch (error) {
-    throw new apiError(400, error.message);
-  }
+  return res
+    .clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    })
+    .status(200)
+    .json({ success: true, message: "User Logged Out Successfully" });
 };

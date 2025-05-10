@@ -1,5 +1,3 @@
-import { apiError } from "../../../utils/apiError.js";
-
 export const validateQuery = (req, res, next) => {
   const { sort_by, order_by, fundType } = req.query;
 
@@ -22,7 +20,7 @@ export const validateQuery = (req, res, next) => {
       validOrderOptions,
     });
   }
-  
+
   if (fundType && !validFundTypes.includes(fundType)) {
     return res.status(400).json({
       success: false,
