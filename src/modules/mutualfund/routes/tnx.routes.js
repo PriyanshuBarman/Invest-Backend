@@ -1,6 +1,9 @@
 import { Router } from "express";
-import { fetchFundTnx, fetchPortfolioTnx } from "../controllers/transaction.controller.js";
-import { isAuthenticated } from "../../../middlewares/isAuthenticated.js";
+import {
+  fetchFundTnx,
+  fetchPortfolioTnx,
+} from "../controllers/transaction.controller.js";
+import { isAuthenticated } from "../../../middlewares/authMiddleware.js";
 
 export const tnxRoutes = Router();
 

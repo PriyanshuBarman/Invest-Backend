@@ -13,6 +13,6 @@ db.getConnection()
     connection.release();
   })
   .catch((error) => {
-    console.error("❌Error connecting to MySQL:", error.message);
+    console.log("❌Error connecting to MySQL:", error.message);
     process.exit(1);
   });

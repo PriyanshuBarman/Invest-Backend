@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { checkBalance, deposit } from "../controllers/wallet.controller.js";
-import { isAuthenticated } from "../../../middlewares/isAuthenticated.js";
+import { isAuthenticated } from "../../../middlewares/authMiddleware.js";
 import { fetchAllTransactions } from "../controllers/transaction.controller.js";
 
 export const walletRoutes = Router();
