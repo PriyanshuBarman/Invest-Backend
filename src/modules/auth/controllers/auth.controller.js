@@ -1,73 +1,60 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
 import { userRepository } from "../../user/repositories/user.repository.js";
 import { apiError } from "../../../utils/apiError.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
 
-export const register = async (req, res) => {
+export const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
-  try {
-    const existingUser = await userRepository.findByEmail(email);
-    if (existingUser) {
-      throw new apiError(400, "User Already Exists");
-    }
+  const existingUser = await userRepository.findByEmail(email);
+  if (existingUser) throw new apiError(400, "User Already Exists");
 
-    const hashPassword = await bcrypt.hash(password, 10);
-    const newUser = await userRepository.create({ name, email, hashPassword });
+  const hashPassword = await bcrypt.hash(password, 10);
 
-    const token = jwt.sign({ id: newUser.insertId }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+  const newUser = await userRepository.create({ name, email, hashPassword });
+
+  const token = jwt.sign({ id: newUser.insertId }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
+  return res
+    .cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .status(201)
+    .json({
+      success: true,
+      message: "User Created Successfully",
     });
+});
 
-    return res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
-      .status(201)
-      .json({
-        success: true,
-        message: "User Created Successfully",
-      });
-  } catch (error) {
-    res.status(error.statusCode || 500).json({ message: error.message });
-  }
-};
-
-export const login = async (req, res) => {
+export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  try {
-    const existingUser = await userRepository.findByEmail(email);
-    if (!existingUser) {
-      throw new apiError(400, "email or password is invalid");
-    }
+  const existingUser = await userRepository.findByEmail(email);
+  if (!existingUser) throw new apiError(400, "email or password is invalid");
 
-    const isMatch = await bcrypt.compare(password, existingUser.password);
-    if (!isMatch) {
-      throw new apiError(400, "email or password is invalid");
-    }
+  const isMatch = await bcrypt.compare(password, existingUser.password);
+  if (!isMatch) throw new apiError(400, "email or password is invalid");
 
-    const token = jwt.sign({ id: existingUser.id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+  const token = jwt.sign({ id: existingUser.id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
-    return res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
-      .status(200)
-      .json({ success: true, message: "User Logged In Successfully" });
-  } catch (error) {
-    res.status(error.statusCode || 500).json({ message: error.message });
-  }
-};
+  return res
+    .cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .status(200)
+    .json({ success: true, message: "User Logged In Successfully" });
+});
 
 export const logout = (req, res) => {
   try {
@@ -79,6 +66,6 @@ export const logout = (req, res) => {
       .status(200)
       .json({ success: true, message: "User Logged Out Successfully" });
   } catch (error) {
-    res.status(error.statusCode || 500).json({ message: error.message });
+    throw new apiError(400, error.message);
   }
 };
