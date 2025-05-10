@@ -15,7 +15,7 @@ export const fetchPortfolio = asyncHandler(async (req, res) => {
   });
 
   if (!portfolio) throw new apiError(400, "Not invested");
-
+  
   return res
     .status(200)
     .json({ success: true, sort_by, order_by, fundType, portfolio });
