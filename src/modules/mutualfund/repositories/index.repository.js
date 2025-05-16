@@ -1,3 +1,4 @@
-import { holdingRepository } from "./holding.repository.js";
-import { portfolioRepository } from "./portfolio.repository.js";
-export { portfolioRepository, holdingRepository };
+import { holdingRepo } from "./holding.repository.js";
+import { portfolioRepo } from "./portfolio.repository.js";
+
+export { holdingRepo, portfolioRepo };

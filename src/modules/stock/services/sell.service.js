@@ -1,18 +1,18 @@
-import { apiError } from "../../../utils/apiError.js";
-import { holdingRepository, portfolioRepository } from "../repositories/index.repository.js";
-import { tnxRepository, walletRepository } from "../../../shared/repositories/index.repository.js";
-import { subtractOverallPortfolio } from "../../../shared/services/overallPortfolio.service.js";
 import { fifoRedemption } from "./fifo.service.js";
+import { ApiError } from "../../../utils/ApiError.utils.js";
+import { tnxRepo, walletRepo } from "../../../shared/repositories/index.repository.js";
+import { subtractUserPortfolio } from "../../../shared/services/userPortfolio.service.js";
+import { holdingRepository, portfolioRepository } from "../repositories/index.repository.js";
 
 // Handles both partial and full redemptions
 
 export const processSell = async (userId, symbol, sellQty = null) => {
   const stock = await portfolioRepository.getStock(userId, symbol);
   if (!stock) {
-    throw new apiError(400, "Stock Not Found");
+    throw new ApiError(400, "Stock Not Found");
   }
   if (sellQty > stock.available_qty) {
-    throw new apiError(400, "Sell qty cannot be greater than available qty");
+    throw new ApiError(400, "Sell qty cannot be greater than available qty");
   }
 
   sellQty = sellQty ? sellQty : stock.available_qty;
@@ -21,7 +21,11 @@ export const processSell = async (userId, symbol, sellQty = null) => {
   if (!sellQty || sellQty === stock.available_qty) {
     await portfolioRepository.deleteStock(userId, symbol);
     await holdingRepository.deleteByCode(userId, symbol);
-    await subtractOverallPortfolio({ userId, sellAmount, portfolioType: "STOCK" });
+    await subtractUserPortfolio({
+      userId,
+      sellAmount,
+      portfolioType: "STOCK",
+    });
   } else {
     const costBasis = await fifoRedemption(userId, symbol, sellQty);
 
@@ -40,10 +44,15 @@ export const processSell = async (userId, symbol, sellQty = null) => {
       symbol,
     });
 
-    await subtractOverallPortfolio({ userId, costBasis, sellAmount, portfolioType: "STOCK" }); // shared
+    await subtractUserPortfolio({
+      userId,
+      costBasis,
+      sellAmount,
+      portfolioType: "STOCK",
+    }); // shared
   }
 
-  await tnxRepository.sell({
+  await tnxRepo.sell({
     asset: "STOCK",
     userId,
     tnxAmount: sellAmount,
@@ -52,5 +61,5 @@ export const processSell = async (userId, symbol, sellQty = null) => {
     sellQty,
     sellPrice: parseFloat(stock.latest_price),
   });
-  await walletRepository.credit(userId, sellAmount);
+  await walletRepo.credit(userId, sellAmount);
 };

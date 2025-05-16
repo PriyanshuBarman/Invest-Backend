@@ -1,9 +1,9 @@
 export const validateQuery = (req, res, next) => {
-  const { sort_by, order_by, fundType } = req.query;
+  const { sort_by, order_by, fund_type } = req.query;
 
-  const validSortOptions = ["investedAmt", "mv", "pnl", "roi"];
+  const validSortOptions = ["investedAmt", "marketValue", "pnl", "roi"];
   const validOrderOptions = ["asc", "desc"];
-  const validFundTypes = ["equity", "debt", "hybrid", "other"];
+  const validFundTypes = ["EQUITY", "DEBT", "HYBRID", "OTHER"];
 
   if (sort_by && !validSortOptions.includes(sort_by)) {
     return res.status(400).json({
@@ -21,13 +21,15 @@ export const validateQuery = (req, res, next) => {
     });
   }
 
-  if (fundType && !validFundTypes.includes(fundType)) {
+  if (fund_type && !validFundTypes.includes(fund_type?.toUpperCase())) {
     return res.status(400).json({
       success: false,
       message: "Invalid fundType value",
       validFundTypes,
     });
   }
+
+  // req.query.fund_type = fund_type?.toUpperCase();
 
   next();
 };

@@ -1,59 +1,83 @@
-import { tnxRepository, walletRepository } from "../../../shared/repositories/index.repository.js";
-import { addToOverallPortfolio } from "../../../shared/services/overallPortfolio.service.js";
-import { apiError } from "../../../utils/apiError.js";
-import { holdingRepository, portfolioRepository } from "../repositories/index.repository.js";
+import { tnxRepo, walletRepo } from "../../../shared/repositories/index.repository.js";
+import { addToUserPortfolio } from "../../../shared/services/userPortfolio.service.js";
+import { ApiError } from "../../../utils/ApiError.utils.js";
+import { holdingRepo, portfolioRepo } from "../repositories/index.repository.js";
+import { calculateUpdatedPortfolio } from "../utils/investment.utils.js";
 
-// Handles both Fresh & Re investment
+// Main Handler
 export const processInvestment = async (data) => {
-  const { userId, investmentAmt, fundCode, fundName, purchaseNav } = data;
-  const balance = await walletRepository.check(userId);
-  if (balance < investmentAmt) {
-    throw new apiError(400, "Insufficient wallet balance");
-  }
+  const { userId, investmentAmt, fundCode, fundName, purchaseNav, fundType } = data;
+
+  const balance = await walletRepo.check(userId);
+  if (investmentAmt > balance) throw new ApiError(400, "Insufficient wallet balance");
+
   const purchaseUnits = investmentAmt / purchaseNav;
 
-  const prevInv = await portfolioRepository.getFund(userId, fundCode);
+  const prevInvestment = await portfolioRepo.findUnique({
+    userId_fundCode: { userId, fundCode },
+  });
 
-  if (!prevInv) {
-    await portfolioRepository.createFund({ purchaseUnits, ...data });
+  // ------------------------------------------------------------------ Checking if the user has already invested in the fund
+  if (!prevInvestment) {
+    await freshInvest({ ...data, purchaseUnits });
   } else {
-    const updatedInvestedAmt = prevInv.investedAmt + investmentAmt;
-    const updatedUnits = parseFloat(prevInv.availableUnits) + purchaseUnits;
-    const updatedMv = prevInv.mv + investmentAmt;
-    const updatedPnl = updatedMv - updatedInvestedAmt;
-    const updatedRoi = updatedInvestedAmt > 0 ? (updatedPnl / updatedInvestedAmt) * 100 : 0;
-
-    await portfolioRepository.updateFund({
-      userId,
-      fundCode,
-      updatedInvestedAmt,
-      updatedMv,
-      updatedUnits,
-      updatedRoi,
-    });
+    await reInvest({ ...data, purchaseUnits, prevInvestment });
   }
+  // ------------------------------------------------------------------// Checking if the user has already invested in the fund
 
-  await holdingRepository.add({
+  // Post-investment operations for both (Fresh & Re investment)
+  await holdingRepo.create({
     userId,
     fundCode,
     fundName,
-    investmentAmt,
+    amount: investmentAmt,
     purchaseNav,
-    purchaseUnits,
+    units: purchaseUnits,
   });
 
-  await tnxRepository.purchase({
-    asset: "MF",
+  await tnxRepo.create({
     userId,
-    tnxAmount: investmentAmt,
+    amount: investmentAmt,
     code: fundCode,
     name: fundName,
-    purchaseQty: purchaseUnits,
-    purchasePrice: purchaseNav,
-  }); // shared
+    quantity: purchaseUnits,
+    price: purchaseNav,
+    assetType: "MF",
+    tnxType: "BUY",
+  });
 
-  await addToOverallPortfolio({ userId, investmentAmt, portfolioType: "MF" }); // shared
+  await addToUserPortfolio({ userId, investmentAmt, portfolioType: "MF" });
 
-  await walletRepository.debit(userId, investmentAmt); // shared
-  console.log("findishsdfldsj");
+  await walletRepo.debit(userId, investmentAmt);
+};
+
+// Below are the helper functions (freshInvest & reInvest) used in the main handler
+// *freshInvest* function is used to create a new investment in the portfolio
+// *reInvest* function is used to update the existing investment in the portfolio
+// prettier-ignore
+const freshInvest = async ({userId,fundCode,fundName,fundType,investmentAmt,purchaseNav,purchaseUnits}) => {
+  await portfolioRepo.create({
+    userId,
+    fundCode,
+    fundName,
+    fundType,
+    units: purchaseUnits,
+    marketValue: investmentAmt,
+    investedAmt: investmentAmt,
+    latestNav: purchaseNav,
+  });
+};
+
+// prettier-ignore
+const reInvest = async ({userId,fundCode,investmentAmt,purchaseNav,purchaseUnits,prevInvestment}) => {
+  const updatedValues = calculateUpdatedPortfolio(
+    prevInvestment,
+    investmentAmt,
+    purchaseUnits
+  );
+
+  await portfolioRepo.update(
+    { userId_fundCode: { userId, fundCode } },
+    { ...updatedValues, latestNav: purchaseNav }
+  );
 };

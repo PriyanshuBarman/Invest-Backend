@@ -1,43 +1,9 @@
-import { db } from "../../../config/db.js";
+import { CrudRepository } from "../../../shared/repositories/crud.repository.js";
 
-export const holdingRepository = {
-  get: async (userId, fundCode) => {
-    const [holdings] = await db.execute(
-      "SELECT * FROM mfholding WHERE userId = ? AND fundCode = ? ORDER BY purchaseDate ASC",
-      [userId, fundCode]
-    );
-    return holdings.length ? holdings : null;
-  },
+class HoldingRepository extends CrudRepository {
+  constructor() {
+    super("MfHolding");
+  }
+}
 
-  add: async ({
-    userId,
-    fundCode,
-    fundName,
-    investmentAmt,
-    purchaseNav,
-    purchaseUnits,
-  }) => {
-    await db.execute(
-      "INSERT INTO mfholding (userId, fundCode, fundName, amount, purchaseNav, units) VALUES(?,?,?,?,?,?)",
-      [userId, fundCode, fundName, investmentAmt, purchaseNav, purchaseUnits]
-    );
-  },
-
-  update: async (holdingId, updatedHoldingUnits, updatedHoldingAmt) => {
-    await db.execute(
-      "UPDATE mfholding SET units = ?, amount = ? WHERE id = ?",
-      [updatedHoldingUnits, updatedHoldingAmt, holdingId]
-    );
-  },
-
-  deleteByCode: async (userId, fundCode) => {
-    await db.execute(
-      "DELETE FROM mfholding WHERE userId = ? AND fundCode = ?",
-      [userId, fundCode]
-    );
-  },
-
-  deleteById: async (holdingId) => {
-    await db.execute("DELETE FROM mfholding WHERE id = ?", [holdingId]);
-  },
-};
+export const holdingRepo = new HoldingRepository();

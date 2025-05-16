@@ -1,14 +1,21 @@
-import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { asyncHandler } from "../../../utils/asyncHandler.utils.js";
 import { processInvestment } from "../services/investment.service.js";
 
 export const handleInvest = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { investmentAmt, fundCode, fundName, purchaseNav, fundType } = req.body;
 
-  await processInvestment({ userId, investmentAmt, fundCode, fundName, purchaseNav, fundType });
+  await processInvestment({
+    userId,
+    investmentAmt,
+    fundCode,
+    fundName,
+    purchaseNav,
+    fundType: fundType.toUpperCase(),
+  });
 
   return res.status(200).json({
     success: true,
-    message: "Investment processed successfully",
+    message: "Investment Successfull",
   });
 });

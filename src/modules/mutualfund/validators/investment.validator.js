@@ -1,4 +1,4 @@
-import { apiError } from "../../../utils/apiError.js";
+import { ApiError } from "../../../utils/ApiError.utils.js";
 
 export const validateInvestment = (req, res, next) => {
   const { investmentAmt, fundCode, fundName, purchaseNav, fundType } = req.body;
@@ -12,11 +12,11 @@ export const validateInvestment = (req, res, next) => {
   };
 
   for (const [key, value] of Object.entries(requiredFields)) {
-    if (!value) throw new apiError(400, `${key} required`);
+    if (!value) throw new ApiError(400, `${key} required`);
   }
 
   if (!investmentAmt || isNaN(investmentAmt) || investmentAmt <= 0)
-    throw new apiError(400, "Invalid investmentAmt");
+    throw new ApiError(400, "Invalid investmentAmt");
 
   next();
 };

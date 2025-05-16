@@ -1,0 +1,10 @@
+import { tnxRepo } from "../../../shared/repositories/tnx.repository.js";
+import { ApiError } from "../../../utils/ApiError.utils.js";
+
+export const fetchAllTnx = async (userId) => {
+  const tnx = await tnxRepo.findMany({ userId }, { orderBy: { createdAt: "desc" } });
+
+  if (!tnx.length) throw new ApiError(404, "No transactions found");
+
+  return tnx;
+};

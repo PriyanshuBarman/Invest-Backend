@@ -1,4 +1,4 @@
-import { db } from "../../../config/db.js";
+import { db } from "../../../config/db.config.js";
 
 export const portfolioRepository = {
   getAllStock: async ({ userId, sort_by = "mv", order_by = "DESC" }) => {

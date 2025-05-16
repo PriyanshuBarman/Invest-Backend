@@ -1,4 +1,4 @@
-import { db } from "../../../config/db.js";
+import { db } from "../../../config/db.config.js";
 
 export const holdingRepository = {
   get: async (userId, symbol) => {
@@ -9,14 +9,7 @@ export const holdingRepository = {
     return holdings.length ? holdings : null;
   },
 
-  add: async ({
-    userId,
-    symbol,
-    stockName,
-    investmentAmt,
-    purchasePrice,
-    purchaseQty,
-  }) => {
+  add: async ({ userId, symbol, stockName, investmentAmt, purchasePrice, purchaseQty }) => {
     await db.execute(
       "INSERT INTO stockholding (userId, symbol, stock_name, investment_amt, purchase_price, qty) VALUES(?,?,?,?,?,?)",
       [userId, symbol, stockName, investmentAmt, purchasePrice, purchaseQty]
@@ -24,17 +17,15 @@ export const holdingRepository = {
   },
 
   update: async (holdingId, updatedHoldingQty, updatedInvestedAmt) => {
-    await db.execute(
-      "UPDATE stockholding SET qty = ?, investment_amt = ? WHERE id = ?",
-      [updatedHoldingQty, updatedInvestedAmt, holdingId]
-    );
+    await db.execute("UPDATE stockholding SET qty = ?, investment_amt = ? WHERE id = ?", [
+      updatedHoldingQty,
+      updatedInvestedAmt,
+      holdingId,
+    ]);
   },
 
   deleteByCode: async (userId, symbol) => {
-    await db.execute(
-      "DELETE FROM stockholding WHERE userId = ? AND symbol = ?",
-      [userId, symbol]
-    );
+    await db.execute("DELETE FROM stockholding WHERE userId = ? AND symbol = ?", [userId, symbol]);
   },
 
   deleteById: async (holdingId) => {

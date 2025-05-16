@@ -1,10 +1,8 @@
 import { Router } from "express";
-import { checkBalance, deposit } from "../controllers/wallet.controller.js";
 import { isAuthenticated } from "../../../middlewares/authMiddleware.js";
-import { fetchAllTransactions } from "../controllers/transaction.controller.js";
+import { getBalance, deposit } from "../controllers/wallet.controller.js";
 
-export const walletRoutes = Router();
+export const balanceRoutes = Router();
 
-walletRoutes.get("/balance", isAuthenticated, checkBalance);
-walletRoutes.put("/deposit", isAuthenticated, deposit);
-walletRoutes.get("/tnx", isAuthenticated, fetchAllTransactions);
+balanceRoutes.get("/balance", isAuthenticated, getBalance);
+balanceRoutes.put("/deposit", isAuthenticated, deposit);

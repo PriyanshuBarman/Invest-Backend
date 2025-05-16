@@ -8,7 +8,7 @@ import { authRoutes } from "./src/modules/auth/routes/auth.routes.js";
 import { mutualFundRoutes } from "./src/modules/mutualfund/routes/index.routes.js";
 import { stockRoutes } from "./src/modules/stock/routes/index.routes.js";
 import { userRoutes } from "./src/modules/user/routes/user.routes.js";
-import { walletRoutes } from "./src/modules/wallet/routes/wallet.routes.js";
+import { walletRoutes } from "./src/modules/wallet/routes/index.routes.js";
 
 const app = express();
 

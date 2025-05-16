@@ -1,26 +1,50 @@
-import { db } from "../../config/db.js";
+import { db } from "../../config/db.config.js";
 
-export const walletRepository = {
-  check: async (userId) => {
-    const [user] = await db.execute("SELECT balance FROM user WHERE id = ?", [
-      userId,
-    ]);
-    return user.length ? user[0].balance : null;
+export const walletRepo = {
+  async check(userId) {
+    try {
+      const { balance } = await db.user.findUnique({
+        where: { id: userId },
+        select: { balance: true },
+      });
+      return balance;
+    } catch (error) {
+      console.log(
+        `♾️Error occurred at Wallet repository - check method: ${error.message}`
+      );
+      throw error;
+    }
   },
 
-  credit: async (userId, amount) => {
+  async credit(userId, amount) {
     amount = Math.abs(amount);
-    await db.execute("UPDATE user SET balance = balance + ? WHERE id = ?", [
-      amount,
-      userId,
-    ]);
+    try {
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          balance: { increment: amount },
+        },
+      });
+    } catch (error) {
+      console.log(
+        `♾️Error occurred at Wallet repository - check method: ${error.message}`
+      );
+    }
   },
 
-  debit: async (userId, amount) => {
+  async debit(userId, amount) {
     amount = Math.abs(amount);
-    await db.execute("UPDATE user SET balance = balance - ? WHERE id = ?", [
-      amount,
-      userId,
-    ]);
+    try {
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          balance: { decrement: amount },
+        },
+      });
+    } catch (error) {
+      console.log(
+        `♾️Error occurred at Wallet repository - check method: ${error.message}`
+      );
+    }
   },
 };
