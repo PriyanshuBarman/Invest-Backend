@@ -1,58 +1,74 @@
-import { apiError } from "../../../utils/apiError.js";
-import { holdingRepository, portfolioRepository } from "../repositories/index.repository.js";
-import { tnxRepository, walletRepository } from "../../../shared/repositories/index.repository.js";
-import { subtractOverallPortfolio } from "../../../shared/services/overallPortfolio.service.js";
 import { fifoRedemption } from "./fifo.service.js";
+import { ApiError } from "../../../utils/ApiError.utils.js";
+import { walletRepo, tnxRepo } from "../../../shared/repositories/index.repository.js";
+import { subtractUserPortfolio } from "../../../shared/services/userPortfolio.service.js";
+import { holdingRepo, portfolioRepo } from "../repositories/index.repository.js";
+import { calculateUpdatedPortfolio } from "../utils/redemption.utils.js";
 
-// Handles both partial and full redemptions
+export const fullRedemption = async (userId, fundCode) => {
+  const fund = await portfolioRepo.findUnique({
+    userId_fundCode: { userId, fundCode },
+  });
 
-export const processRedemption = async (userId, fundCode, redemptionAmt = null) => {
-  const fund = await portfolioRepository.getFund(userId, fundCode);
+  if (!fund) throw new ApiError(400, "Not invested in this fund");
 
-  if (!fund) throw new apiError(400, "Fund Not Found");
-  if (redemptionAmt > fund.mv) throw new apiError(400, "insufficient fund balance");
+  const redemptionAmt = fund.marketValue.toNumber();
+  const redemptionUnits = fund.units.toNumber();
 
-  const redemptionUnits = redemptionAmt
-    ? redemptionAmt / parseFloat(fund.latestNav)
-    : parseFloat(fund.availableUnits);
+  await portfolioRepo.delete({ id: fund.id });
 
-  if (!redemptionAmt || redemptionAmt === fund.mv) {
-    redemptionAmt = fund.mv;
+  await holdingRepo.deleteMany({ userId, fundCode });
 
-    await portfolioRepository.deleteFund(userId, fundCode);
-    await holdingRepository.deleteByCode(userId, fundCode);
+  await subtractUserPortfolio({ userId, amount: redemptionAmt, portfolioType: "MF" });
 
-    await subtractOverallPortfolio({ userId, sellAmount: redemptionAmt, portfolioType: "MF" });
-  } else {
-    const costBasis = await fifoRedemption(userId, fundCode, redemptionUnits);
+  await postRedemptionOperations(userId, fund, redemptionAmt, redemptionUnits); // helper
+};
 
-    const updatedInvestedAmt = fund.investedAmt - costBasis;
-    const updatedMv = fund.mv - redemptionAmt;
-    const updatedUnits = parseFloat(fund.availableUnits) - redemptionUnits;
-    const updatedPnl = updatedMv - updatedInvestedAmt;
-    const updatedRoi = updatedInvestedAmt > 0 ? (updatedPnl / updatedInvestedAmt) * 100 : 0;
+export const partialRedemption = async (userId, fundCode, redemptionAmt) => {
+  const fund = await portfolioRepo.findUnique({
+    userId_fundCode: { userId, fundCode },
+  });
 
-    await portfolioRepository.updateFund({
-      updatedInvestedAmt,
-      updatedMv,
-      updatedUnits,
-      updatedRoi,
-      userId,
-      fundCode,
-    });
+  // ------------------------------------------------------------------------------ Validations
+  if (!fund) throw new ApiError(400, "Not invested in this fund");
 
-    await subtractOverallPortfolio({ userId, costBasis, sellAmount: redemptionAmt, portfolioType: "MF" }); // shared
-  }
+  if (redemptionAmt > fund.marketValue.toNumber())
+    throw new ApiError(400, "insufficient fund balance");
 
-  await tnxRepository.sell({
-    asset: "MF",
+  if (redemptionAmt === fund.marketValue.toNumber())
+    return fullRedemption(userId, fundCode);
+  // ------------------------------------------------------------------------------// Validations
+
+  const redemptionUnits = redemptionAmt / fund.latestNav.toNumber();
+  const costBasis = await fifoRedemption(userId, fundCode, redemptionUnits);
+
+  await portfolioRepo.update(
+    { userId_fundCode: { userId, fundCode } },
+    calculateUpdatedPortfolio(fund, costBasis, redemptionAmt, redemptionUnits)
+  );
+
+  await subtractUserPortfolio({
     userId,
-    tnxAmount: redemptionAmt,
-    code: fund.fundCode,
-    name: fund.fundName,
-    sellPrice: parseFloat(fund.latestNav),
-    sellQty: redemptionUnits,
+    costBasis,
+    amount: redemptionAmt,
+    portfolioType: "MF",
   }); // shared
 
-  await walletRepository.credit(userId, redemptionAmt); // shared
+  await postRedemptionOperations(userId, fund, redemptionAmt, redemptionUnits); // helper
+};
+
+// it's a helper fnc
+const postRedemptionOperations = async (userId, fund, redemptionAmt, redemptionUnits) => {
+  await tnxRepo.create({
+    userId,
+    amount: redemptionAmt,
+    code: fund.fundCode,
+    name: fund.fundName,
+    quantity: redemptionUnits,
+    price: fund.latestNav.toNumber(),
+    assetType: "MF",
+    tnxType: "SELL",
+  });
+
+  await walletRepo.credit(userId, redemptionAmt);
 };

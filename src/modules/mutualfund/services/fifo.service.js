@@ -1,39 +1,36 @@
-import { holdingRepository } from "../repositories/holding.repository.js";
+import { holdingRepo } from "../repositories/index.repository.js";
 
 export const fifoRedemption = async (userId, fundCode, redemptionUnits) => {
-console.log("♾️");
-
-  const holdings = await holdingRepository.get(userId, fundCode);
-console.log("♾️");
-
+  const holdings = await holdingRepo.findMany({ userId, fundCode });
 
   let remainingUnits = redemptionUnits;
   let costBasis = 0;
+
   for (const holding of holdings) {
     if (remainingUnits === 0) break;
 
-    const holdingUnits = parseFloat(holding.units);
-    const holdingNav = parseFloat(holding.purchaseNav);
+    const holdingUnits = holding.units.toNumber();
+    const holdingNav = holding.purchaseNav.toNumber();
 
     if (remainingUnits >= holdingUnits) {
       costBasis += holding.amount;
       remainingUnits -= holdingUnits;
-      
-      console.log("♾️");
-      await holdingRepository.deleteById(holding.id);
-    } else {
-      const reductionAmount = remainingUnits * holdingNav;
-      
-      const updatedHoldingUnits = holdingUnits - remainingUnits;
-      const updatedHoldingAmt = holding.amount - reductionAmount;
-      
-      console.log("♾️");
-      await holdingRepository.update(holding.id, updatedHoldingUnits, updatedHoldingAmt);
-      console.log("♾️");
 
+      await holdingRepo.delete({ id: holding.id });
+    } else {
+      await holdingRepo.update(
+        { id: holding.id },
+        {
+          units: holding.units.toNumber() - remainingUnits,
+          amount: holding.amount.toNumber() - remainingUnits * holdingNav,
+        }
+      );
+
+      // Add the amount to cost basis
       costBasis += remainingUnits * holdingNav;
       remainingUnits = 0;
     }
   }
+
   return Math.round(costBasis);
 };

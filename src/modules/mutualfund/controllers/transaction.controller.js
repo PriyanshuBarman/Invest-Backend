@@ -1,28 +1,19 @@
-import { tnxRepository } from "../../../shared/repositories/tnx.repository.js";
-import { apiError } from "../../../utils/apiError.js";
-import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { asyncHandler } from "../../../utils/asyncHandler.utils.js";
+import { fetchFundTnx, fetchPortfolioTnx } from "../services/tnx.service.js";
 
-export const fetchPortfolioTnx = asyncHandler(async (req, res) => {
+export const getPortfolioTnx = asyncHandler(async (req, res) => {
   const { userId } = req.user;
 
-  const tnx = await tnxRepository.getByPortfolio({
-    userId,
-    portfolioType: "MF",
-  });
-
-  if (!tnx) throw new apiError(404, "No transactions found");
+  const tnx = await fetchPortfolioTnx(userId);
 
   return res.status(200).json({ success: true, tnx });
 });
 
-
-export const fetchFundTnx = asyncHandler(async (req, res) => {
+export const getFundTnx = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { fundCode } = req.params;
 
-  const tnx = await tnxRepository.getByCode(userId, fundCode);
-  
-  if (!tnx) throw new apiError(404, "No transactions found");
+  const tnx = await fetchFundTnx(userId, fundCode);
 
   return res.status(200).json({ success: true, tnx });
 });

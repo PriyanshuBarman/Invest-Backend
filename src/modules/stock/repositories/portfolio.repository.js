@@ -1,61 +1,9 @@
-import { db } from "../../../config/db.js";
+import { CrudRepository } from "../../../shared/repositories/crud.repository.js";
 
-export const portfolioRepository = {
-  getAllStock: async ({ userId, sort_by = "mv", order_by = "DESC" }) => {
-    const query = `SELECT * FROM stockportfolio WHERE userId = ? ORDER BY ${sort_by} ${order_by}`;
+class PortfolioRepository extends CrudRepository {
+  constructor() {
+    super("stockPortfolio");
+  }
+}
 
-    const [portfolio] = await db.execute(query, [userId]);
-    return portfolio.length ? portfolio : null;
-  },
-
-  getStock: async (userId, symbol) => {
-    const [portfolio] = await db.execute(
-      "SELECT * FROM stockportfolio WHERE  userId = ? AND symbol = ?",
-      [userId, symbol]
-    );
-    return portfolio[0] || null;
-  },
-
-  addNewStock: async ({
-    userId,
-    investmentAmt,
-    symbol,
-    stockName,
-    purchasePrice,
-    purchaseQty,
-  }) => {
-    await db.execute(
-      "INSERT INTO stockportfolio (userId, symbol, stock_name, investedAmt, mv, available_qty, latest_price) VALUES(?,?,?,?,?,?,?)",
-      [
-        userId,
-        symbol,
-        stockName,
-        investmentAmt,
-        investmentAmt,
-        purchaseQty,
-        purchasePrice,
-      ]
-    );
-  },
-
-  updateStock: async ({
-    updatedInvestedAmt,
-    updatedMv,
-    updatedQty,
-    updatedRoi,
-    userId,
-    symbol,
-  }) => {
-    await db.execute(
-      "UPDATE stockportfolio SET investedAmt = ?, mv = ?, available_qty = ?, roi = ? WHERE userId = ? AND symbol = ?",
-      [updatedInvestedAmt, updatedMv, updatedQty, updatedRoi, userId, symbol]
-    );
-  },
-
-  deleteStock: async (userId, symbol) => {
-    await db.execute(
-      "DELETE FROM stockportfolio WHERE userId = ? AND symbol = ?",
-      [userId, symbol]
-    );
-  },
-};
+export const portfolioRepo = new PortfolioRepository();

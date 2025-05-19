@@ -1,60 +1,60 @@
-import { tnxRepository, walletRepository } from "../../../shared/repositories/index.repository.js";
-import { addToOverallPortfolio } from "../../../shared/services/overallPortfolio.service.js";
-import { apiError } from "../../../utils/apiError.js";
-import { holdingRepository, portfolioRepository } from "../repositories/index.repository.js";
+import { tnxRepo, walletRepo } from "../../../shared/repositories/index.repository.js";
+import { addToUserPortfolio } from "../../../shared/services/userPortfolio.service.js";
+import { ApiError } from "../../../utils/ApiError.utils.js";
+import { holdingRepo, portfolioRepo } from "../repositories/index.repository.js";
+import { calculateUpdatedPortfolio } from "../utils/purchase.utils.js";
 
 // Handles both Fresh & Re investment
+
 export const processPurchase = async (data) => {
-  const { userId, symbol, stockName, purchasePrice, purchaseQty } = data;
+  const { userId, symbol, stockName, price, quantity } = data;
 
-  const balance = await walletRepository.check(userId);
+  const balance = await walletRepo.check(userId);
 
-  const investmentAmt = purchaseQty * purchasePrice;
+  const investmentAmt = quantity * price;
 
-  if (balance < investmentAmt) {
-    throw new apiError(400, "Insufficient wallet balance");
-  }
+  if (investmentAmt > balance) throw new ApiError(400, "Insufficient wallet balance");
 
-  const prevInv = await portfolioRepository.getStock(userId, symbol);
+  const prevInv = await portfolioRepo.findUnique({ userId_symbol: { userId, symbol } });
 
   if (!prevInv) {
-    await portfolioRepository.addNewStock({ investmentAmt, ...data });
-  } else {
-    const updatedInvestedAmt = prevInv.investedAmt + investmentAmt;
-    const updatedMv = prevInv.mv + investmentAmt;
-    const updatedQty = parseFloat(prevInv.available_qty) + purchaseQty;
-    const updatedPnl = updatedMv - updatedInvestedAmt;
-    const updatedRoi = updatedInvestedAmt > 0 ? (updatedPnl / updatedInvestedAmt) * 100 : 0;
-
-    await portfolioRepository.updateStock({
+    await portfolioRepo.create({
       userId,
       symbol,
-      updatedInvestedAmt,
-      updatedMv,
-      updatedQty,
-      updatedRoi,
+      stockName,
+      quantity,
+      investedAmt: investmentAmt,
+      marketValue: investmentAmt,
+      // latestPrice: price,
     });
+  } else {
+    const updatedValues = calculateUpdatedPortfolio(prevInv, investmentAmt, quantity);
+    await portfolioRepo.update({ id: prevInv.id }, updatedValues);
   }
 
-  await tnxRepository.purchase({
+  // Below are the Common Post-investment operations for both (Fresh or Re investment)
+
+  await tnxRepo.create({
     userId,
-    tnxAmount: investmentAmt,
-    asset: "STOCK",
+    price,
+    quantity,
     code: symbol,
+    tnxType: "BUY",
+    assetType: "STOCK",
+    amount: investmentAmt,
     name: stockName,
-    purchaseQty,
-    purchasePrice,
   }); // shared
 
-  await holdingRepository.add({
+  await holdingRepo.create({
     userId,
+    price,
     symbol,
+    quantity,
     stockName,
-    investmentAmt,
-    purchasePrice,
-    purchaseQty,
+    amount: investmentAmt,
   });
-  await addToOverallPortfolio({ userId, investmentAmt, portfolioType: "STOCK" }); // shared
 
-  await walletRepository.debit(userId, investmentAmt); // shared
+  await addToUserPortfolio({ userId, investmentAmt, portfolioType: "STOCK" }); // shared
+
+  await walletRepo.debit(userId, investmentAmt); // shared
 };

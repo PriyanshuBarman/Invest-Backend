@@ -1,16 +1,16 @@
-import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { asyncHandler } from "../../../utils/asyncHandler.utils.js";
 import { processPurchase } from "../services/purchase.service.js";
 
 export const handlePurchase = asyncHandler(async (req, res) => {
   const { userId } = req.user;
-  const { symbol, stockName, purchasePrice, purchaseQty } = req.body;
+  const { symbol, stockName, price, quantity } = req.body;
 
   await processPurchase({
     userId,
     symbol,
     stockName,
-    purchasePrice,
-    purchaseQty,
+    price,
+    quantity,
   });
 
   return res.status(200).json({

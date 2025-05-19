@@ -1,30 +1,27 @@
-import { holdingRepository } from "../repositories/holding.repository.js";
+import { holdingRepo } from "../repositories/index.repository.js";
 
 export const fifoRedemption = async (userId, symbol, sellQty) => {
-  const holdings = await holdingRepository.get(userId, symbol);
+  const holdings = await holdingRepo.findMany({userId, symbol});
 
-  let remainingUnits = sellQty;
+  let remainingQty = sellQty;
   let costBasis = 0;
 
   for (const holding of holdings) {
-    if (remainingUnits === 0) break;
+    if (remainingQty === 0) break;
 
-    const holdingUnits = parseFloat(holding.units);
-    const holdingQty = parseFloat(holding.purchase_price);
-
-    if (remainingUnits >= holdingUnits) {
+    if (remainingQty >= holding.units) {
       costBasis += holding.amount;
-      remainingUnits -= holdingUnits;
-      await holdingRepository.deleteById(holding.id);
+      remainingQty -= holding.units;
+      await holdingRepo.delete(holding.id);
     } else {
-      const reductionAmount = remainingUnits * holdingQty;
+      const reductionAmount = remainingQty * holding.price.toNumber();
+      await holdingRepo.update(
+        { id: holding.id },
+        { quantity: { decrement: remainingQty }, amount: { decrement: reductionAmount } }
+      );
 
-      const updatedHoldingQty = holdingUnits - remainingUnits;
-      const updatedInvestedAmt = holding.amount - reductionAmount;
-      await holdingRepository.update(holding.id, updatedHoldingQty, updatedInvestedAmt);
-
-      costBasis += remainingUnits * holdingQty;
-      remainingUnits = 0;
+      costBasis += remainingQty * holding.price.toNumber();
+      remainingQty = 0;
     }
   }
 

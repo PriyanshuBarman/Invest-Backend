@@ -1,35 +1,25 @@
-import { apiError } from "../../../utils/apiError.js";
-import { asyncHandler } from "../../../utils/asyncHandler.js";
-import { processSell } from "../services/sell.service.js";
+import { ApiError } from "../../../utils/ApiError.utils.js";
+import { asyncHandler } from "../../../utils/asyncHandler.utils.js";
+import { sellAllQty, sellSomeQty } from "../services/sell.service.js";
 
 export const handleSell = asyncHandler(async (req, res) => {
   const { userId } = req.user;
-  const { symbol } = req.params;
-  const { sellQty } = req.body;
+  const { symbol, price, quantity } = req.body;
 
-  if (!symbol) throw new apiError(400, "symbol required");
-
-  if (!sellQty) throw new apiError(400, "sellQty required");
-
-  if (isNaN(sellQty) || sellQty <= 0 || !Number.isInteger(sellQty))
-    throw new apiError(400, "Invalid sellQty");
-
-  await processSell(userId, symbol, sellQty);
+  await sellSomeQty(userId, symbol, price, quantity);
 
   return res
     .status(200)
-    .json({ success: true, message: "sold out successful" });
+    .json({ success: true, message: `${quantity} quantity sold successful` });
 });
 
 export const handleSellAllQty = asyncHandler(async (req, res) => {
   const { userId } = req.user;
-  const { symbol } = req.params;
+  const { symbol, price } = req.body;
 
-  if (!symbol) throw new apiError(400, "symbol required");
-
-  await processSell(userId, symbol);
+  await sellAllQty(userId, symbol, price);
 
   return res
     .status(200)
-    .json({ success: true, message: "All qty sold out successfully" });
+    .json({ success: true, message: "All quantity sold successfully" });
 });

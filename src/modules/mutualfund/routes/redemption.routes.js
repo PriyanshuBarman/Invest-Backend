@@ -1,10 +1,17 @@
 import { Router } from "express";
 import { isAuthenticated } from "../../../middlewares/authMiddleware.js";
+import { handleFullRedeem, handlePartialRedeem } from "../controllers/redemption.controller.js";
 import {
-  handleFullRedeem,
-  handleRedeem,
-} from "../controllers/redemption.controller.js";
+  validateFullRedemption,
+  validatePartialRedemption,
+} from "../validators/redemption.validator.js";
 export const redemptionRoutes = Router();
 
-redemptionRoutes.put("/:fundCode?", isAuthenticated, handleRedeem);
-redemptionRoutes.delete("/:fundCode?", isAuthenticated, handleFullRedeem);
+redemptionRoutes.delete("/:fundCode?", isAuthenticated, validateFullRedemption, handleFullRedeem);
+
+redemptionRoutes.put(
+  "/:fundCode?",
+  isAuthenticated,
+  validatePartialRedemption,
+  handlePartialRedeem
+);

@@ -1,19 +1,21 @@
-import { apiError } from "../../../utils/apiError";
+import { ApiError } from "../../../utils/ApiError.utils.js";
 
 export const validatePurchase = (req, res, next) => {
-  const { symbol, stockName, purchasePrice, purchaseQty } = req.body;
+  const { symbol, stockName, price, quantity } = req.body;
 
-  const requiredFields = { symbol, stockName, purchasePrice, purchaseQty };
+  const requiredFields = ["symbol", "stockName", "quantity", "price"];
 
-  for (const [key, value] of Object.entries(requiredFields)) {
-    if (!value) throw new apiError(400, `${key} required`);
+  for (const field of requiredFields) {
+    if (!req.body[field] || req.body[field] == "") {
+      throw new ApiError(400, `${field} is required`);
+    }
   }
 
-  if (isNaN(purchasePrice) || purchasePrice <= 0)
-    throw new apiError(400, "Invalid purchasePrice");
+  if (isNaN(price) || price <= 0) throw new ApiError(400, "Invalid purchasePrice");
 
-  if (isNaN(purchaseQty) || purchaseQty <= 0 || !Number.isInteger(purchaseQty))
-    throw new apiError(400, "Invalid purchaseQty");
+  if (isNaN(quantity) || quantity <= 0 || !Number.isInteger(quantity)) {
+    throw new ApiError(400, "Invalid quantity");
+  }
 
   next();
 };

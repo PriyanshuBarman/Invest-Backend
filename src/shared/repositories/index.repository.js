@@ -1,5 +1,5 @@
-import { tnxRepository } from "./tnx.repository.js";
-import { walletRepository } from "./wallet.repository.js";
-import { overallPortfolioRepo } from "./overallPortFolio.repository.js";
+import { tnxRepo } from "./tnx.repository.js";
+import { walletRepo } from "./wallet.repository.js";
+import { userPortfolioRepo } from "./userPortfolio.repository.js";
 
-export { tnxRepository, walletRepository, overallPortfolioRepo };
+export { tnxRepo, walletRepo, userPortfolioRepo };
