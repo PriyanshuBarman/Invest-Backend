@@ -17,9 +17,9 @@ export class CrudRepository {
     }
   }
 
-  async findUnique(where) {
+  async findUnique(where, options={}) {
     try {
-      const result = await db[this.model].findUnique({ where });
+      const result = await db[this.model].findUnique({ where, ...options });
       return result;
     } catch (error) {
       console.log(
@@ -28,6 +28,7 @@ export class CrudRepository {
       throw error;
     }
   }
+
   async findFirst(where) {
     try {
       const result = await db[this.model].findFirst({ where });

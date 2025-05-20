@@ -1,5 +1,7 @@
 import { OAuth2Client } from "google-auth-library";
 import { userRepo } from "../../user/repositories/user.repository.js";
+import { asyncHandler } from "../../../utils/asyncHandler.utils.js";
+import { ApiError } from "../../../utils/ApiError.utils.js";
 
 const client = new OAuth2Client(
   process.env.CLIENT_ID,
@@ -7,28 +9,24 @@ const client = new OAuth2Client(
   "postmessage"
 );
 
-export const signinWithGoogle = async (req, res) => {
+export const signinWithGoogle = asyncHandler(async (req, res) => {
   const { code } = req.body;
-  try {
-    const { tokens } = await client.getToken(code);
-    const ticket = await client.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: process.env.CLIENT_ID,
-    });
 
-    const { email, name, picture } = ticket.getPayload();
+  const { tokens } = await client.getToken(code);
 
-    const userExists = await userRepo.findUnique({ email });
-    if (userExists) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User Already Exists" });
-    }
+  const ticket = await client.verifyIdToken({
+    idToken: tokens.id_token,
+    audience: process.env.CLIENT_ID,
+  });
 
-    await userRepo.create({ name, email, avatar: picture });
+  const { email, name, picture } = ticket.getPayload();
 
-    res.status(200).json({ success: true, message: "Registered Successfully" });
-  } catch (error) {
-    res.status(401).json({ message: error, m: "ji" });
+  const userExists = await userRepo.findUnique({ email });
+  if (userExists) {
+    throw new ApiError(400, "User Already Exists");
   }
-};
+
+  await userRepo.create({ name, email, avatar: picture });
+
+  return res.status(200).json({ success: true, message: "Registered Successfully" });
+});

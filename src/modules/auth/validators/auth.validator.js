@@ -8,7 +8,6 @@ export const registerValidator = (req, res, next) => {
 
   if (!name) throw new ApiError(400, "Name required");
   if (!email) throw new ApiError(400, "Email required");
-
   if (!password) throw new ApiError(400, "Password required");
 
   if (password.includes(" ")) throw new ApiError(400, "Password should not contain spaces");
@@ -27,9 +26,7 @@ export const loginValidator = (req, res, next) => {
   email = email.trim().toLowerCase();
 
   if (!email) throw new ApiError(400, "Email required");
-
   if (!password) throw new ApiError(400, "Password required");
-
   if (password.includes(" ")) throw new ApiError(400, "Password should not contain spaces");
 
   req.body.email = email;

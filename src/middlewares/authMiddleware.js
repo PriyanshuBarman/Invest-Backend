@@ -8,9 +8,11 @@ export const isAuthenticated = (req, res, next) => {
 
   try {
     const validUser = jwt.verify(token, process.env.JWT_SECRET);
+
     req.user = { userId: validUser.id };
+    
     return next();
   } catch (error) {
-    return next(new ApiError(401, "Unauthorized: Invalid token"));
+    throw new ApiError(401, "Unauthorized: Invalid token");
   }
 };

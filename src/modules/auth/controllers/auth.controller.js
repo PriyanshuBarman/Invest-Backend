@@ -10,19 +10,21 @@ const COOKIE_OPTIONS = {
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
-  const { token } = await registerUser({ name, email, password });
 
-  res
+  const token = await registerUser({ name, email, password });
+
+  return res
     .cookie("token", token, COOKIE_OPTIONS)
     .status(201)
-    .json({ success: true, message: "User Created Successfully" });
+    .json({ success: true, message: "User Regestration Sucessfull" });
 });
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  const { token } = await loginUser({ email, password });
 
-  res
+  const token = await loginUser({ email, password });
+
+  return res
     .cookie("token", token, COOKIE_OPTIONS)
     .status(200)
     .json({ success: true, message: "User Logged In Successfully" });
