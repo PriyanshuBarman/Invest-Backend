@@ -57,7 +57,7 @@ export const partialRedemption = async (userId, fundCode, redemptionAmt) => {
   await postRedemptionOperations(userId, fund, redemptionAmt, redemptionUnits); // helper
 };
 
-// it's a helper fnc
+// it's a helper fnc that's called in both of the above fnc
 const postRedemptionOperations = async (userId, fund, redemptionAmt, redemptionUnits) => {
   await tnxRepo.create({
     userId,
@@ -70,5 +70,5 @@ const postRedemptionOperations = async (userId, fund, redemptionAmt, redemptionU
     tnxType: "SELL",
   });
 
-  await walletRepo.credit(userId, redemptionAmt);
+  await walletRepo.creditBalance(userId, redemptionAmt);
 };

@@ -1,11 +1,11 @@
 import { asyncHandler } from "../../../utils/asyncHandler.utils.js";
-import { processPurchase } from "../services/purchase.service.js";
+import * as purchaseService from "../services/purchase.service.js";
 
 export const handlePurchase = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { symbol, stockName, price, quantity } = req.body;
 
-  await processPurchase({
+  await purchaseService.processPurchase({
     userId,
     symbol,
     stockName,

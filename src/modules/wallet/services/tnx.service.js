@@ -1,4 +1,4 @@
-import { tnxRepo } from "../../../shared/repositories/tnx.repository.js";
+import { tnxRepo } from "../../../shared/repositories/index.repository.js";
 import { ApiError } from "../../../utils/ApiError.utils.js";
 
 export const fetchAllTnx = async (userId) => {

@@ -5,4 +5,5 @@ class TnxRepository extends CrudRepository {
     super("transaction");
   }
 }
+
 export const tnxRepo = new TnxRepository();

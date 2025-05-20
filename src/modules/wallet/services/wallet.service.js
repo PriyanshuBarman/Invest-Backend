@@ -1,12 +1,11 @@
-import { tnxRepo } from "../../../shared/repositories/tnx.repository.js";
-import { walletRepo } from "../../../shared/repositories/wallet.repository.js";
+import { tnxRepo, walletRepo } from "../../../shared/repositories/index.repository.js";
 
 export const fetchBalance = async (userId) => {
-  return await walletRepo.check(userId);
+  return await walletRepo.checkBalance(userId);
 };
 
 export const depositBalance = async (userId, amount) => {
-  await walletRepo.credit(userId, amount);
+  await walletRepo.creditBalance(userId, amount);
   await tnxRepo.create({
     userId,
     amount,

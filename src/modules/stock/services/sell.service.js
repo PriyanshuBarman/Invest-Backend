@@ -25,10 +25,8 @@ export const sellAllQty = async (userId, symbol, price) => {
   await portfolioRepo.delete({ id: prev.id });
   await subtractUserPortfolio({ userId, amount, portfolioType: "STOCK" }); // shared
   await holdingRepo.deleteMany({ userId, symbol });
-  await walletRepo.credit(userId, amount);
+  await walletRepo.creditBalance(userId, amount);
 };
-
-
 
 export const sellSomeQty = async (userId, symbol, price, quantity) => {
   const prev = await portfolioRepo.findUnique({ userId_symbol: { userId, symbol } });
@@ -45,11 +43,11 @@ export const sellSomeQty = async (userId, symbol, price, quantity) => {
   const amount = quantity * price; // sellingAmount
   const costBasis = await fifoRedemption(userId, symbol, quantity);
 
-  const updatedValues = calculateUpdatedPortfolio(prev, costBasis, quantity,  price);
+  const updatedValues = calculateUpdatedPortfolio(prev, costBasis, quantity, price);
 
   await portfolioRepo.update({ id: prev.id }, updatedValues);
   await subtractUserPortfolio({ userId, costBasis, amount, portfolioType: "STOCK" }); // shared
-  await walletRepo.credit(userId, amount);
+  await walletRepo.creditBalance(userId, amount);
   await tnxRepo.create({
     userId,
     price,

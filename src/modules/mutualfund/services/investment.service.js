@@ -8,7 +8,7 @@ import { calculateUpdatedPortfolio } from "../utils/investment.utils.js";
 export const processInvestment = async (data) => {
   const { userId, investmentAmt, fundCode, fundName, purchaseNav, fundType } = data;
 
-  const balance = await walletRepo.check(userId);
+  const balance = await walletRepo.checkBalance(userId);
   if (investmentAmt > balance) throw new ApiError(400, "Insufficient wallet balance");
 
   const purchaseUnits = investmentAmt / purchaseNav;
@@ -17,7 +17,7 @@ export const processInvestment = async (data) => {
     userId_fundCode: { userId, fundCode },
   });
 
-  //  Checking if the user has already invested in the fund (Fresh or Re invest)
+  // ------------------------------------------------------- Checking it's Fresh or Re investment
   if (!prevInv) {
     await portfolioRepo.create({
       userId,
@@ -30,12 +30,19 @@ export const processInvestment = async (data) => {
       latestNav: purchaseNav,
     });
   } else {
-    const updatedValues = calculateUpdatedPortfolio(prevInv, investmentAmt, purchaseUnits);
-    await portfolioRepo.update({ id: prevInv.id }, { ...updatedValues, latestNav: purchaseNav });
+    const updatedValues = calculateUpdatedPortfolio(
+      prevInv,
+      investmentAmt,
+      purchaseUnits
+    );
+    await portfolioRepo.update(
+      { id: prevInv.id },
+      { ...updatedValues, latestNav: purchaseNav }
+    );
   }
-  // -----------------------------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------------
 
-  // // Common Post-investment operations for both (Fresh & Re investment)
+  // Below are the Common Post-investment operations for both (Fresh or Re investment)
   await holdingRepo.create({
     userId,
     fundCode,
@@ -58,5 +65,5 @@ export const processInvestment = async (data) => {
 
   await addToUserPortfolio({ userId, investmentAmt, portfolioType: "MF" });
 
-  await walletRepo.debit(userId, investmentAmt);
+  await walletRepo.debitBalance(userId, investmentAmt);
 };

@@ -12,6 +12,7 @@ export const fetchPortfolio = async ({ userId, fundType, sort_by, order_by }) =>
   return portfolio;
 };
 
+
 export const fetchFund = async ({ userId, fundCode }) => {
   const fund = await portfolioRepo.findUnique({
     userId_fundCode: { userId, fundCode },
@@ -20,6 +21,7 @@ export const fetchFund = async ({ userId, fundCode }) => {
   if (!fund) throw new ApiError(404, "Not invested");
   return fund;
 };
+
 
 export const fetchPortfolioSummary = async ({ userId }) => {
   const portfolio = await userPortfolioRepo.findUnique({

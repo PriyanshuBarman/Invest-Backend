@@ -9,36 +9,37 @@ export const addToUserPortfolio = async ({ userId, investmentAmt, portfolioType 
     userId_portfolioType: { userId, portfolioType },
   });
 
-  // =================== If First Investment (CREATE) userPortfolio & return ===================
+  // If First Investment CREATE userPortfolio else UPDATE existing userPortfolio
   if (!userPortfolio) {
-    return await userPortfolioRepo.create({
+    await userPortfolioRepo.create({
       userId,
       portfolioType,
       totalMv: investmentAmt,
       totalInv: investmentAmt,
     });
+  } else {
+    await userPortfolioRepo.update(
+      { id: userPortfolio.id },
+      calculatePortfolioAfterBuy(userPortfolio, investmentAmt)
+    );
   }
-  // ================================================ else (UPDATE) userPortfolio //=======
-
-  // Update the existing record
-  await userPortfolioRepo.update(
-    { id: userPortfolio.id },
-    calculatePortfolioAfterBuy(userPortfolio, investmentAmt)
-  );
 };
+
 
 // prettier-ignore
 export const subtractUserPortfolio = async ({userId,amount,portfolioType,costBasis = null}) => {
   const userPortfolio = await userPortfolioRepo.findUnique({
     userId_portfolioType: { userId, portfolioType },
   });
-
+  
+  // If Last Redemption/Sell DELETE userPortfolio else UPDATE existing userPortfolio
   if (amount === userPortfolio.totalMv.toNumber()) {
-    return await userPortfolioRepo.delete({ id: userPortfolio.id });
+     await userPortfolioRepo.delete({ id: userPortfolio.id });
+  } else {
+    await userPortfolioRepo.update(
+      { id: userPortfolio.id },
+      calculatePortfolioAfterSell(userPortfolio, amount, costBasis)
+    );
   }
 
-  await userPortfolioRepo.update(
-    { id: userPortfolio.id },
-    calculatePortfolioAfterSell(userPortfolio, amount, costBasis)
-  );
 };

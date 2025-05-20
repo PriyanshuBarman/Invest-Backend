@@ -1,7 +1,6 @@
 import { OAuth2Client } from "google-auth-library";
-import { userRepo } from "../../user/repositories/user.repository.js";
 import { asyncHandler } from "../../../utils/asyncHandler.utils.js";
-import { ApiError } from "../../../utils/ApiError.utils.js";
+import { userRepo } from "../../user/repositories/user.repository.js";
 
 const client = new OAuth2Client(
   process.env.CLIENT_ID,
@@ -21,12 +20,11 @@ export const signinWithGoogle = asyncHandler(async (req, res) => {
 
   const { email, name, picture } = ticket.getPayload();
 
-  const userExists = await userRepo.findUnique({ email });
-  if (userExists) {
-    throw new ApiError(400, "User Already Exists");
+  const existingUser = await userRepo.findUnique({ email });
+
+  if (!existingUser) {
+    await userRepo.create({ name, email, avatar: picture });
   }
 
-  await userRepo.create({ name, email, avatar: picture });
-
-  return res.status(200).json({ success: true, message: "Registered Successfully" });
+  return res.status(200).json({ success: true, message: "User Registered Successfully" });
 });

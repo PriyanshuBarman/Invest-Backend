@@ -5,4 +5,5 @@ class HoldingRepository extends CrudRepository {
     super("stockHolding");
   }
 }
+
 export const holdingRepo = new HoldingRepository();

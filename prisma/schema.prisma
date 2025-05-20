@@ -33,19 +33,13 @@ model Transaction {
   userId    String
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount    Decimal         @db.Decimal(10, 2)
-  assetType AssetType? //
+  assetType AssetType?
   code      String?
   name      String?
   tnxType   TransactionType
-  quantity  Decimal?        @db.Decimal(10, 2) //
-  price     Decimal?        @db.Decimal(10, 4) //
-  createdAt DateTime        @default(now()) //
-
-  // Add these indexes for performance
-  // @@index([userId, createdAt])       // For filtering user's transactions by date
-  // @@index([userId, tnxType])         // For filtering by transaction type 
-  // @@index([userId, assetType, code]) // For filtering by specific asset
-  // @@index([createdAt])               // For date range queries
+  quantity  Decimal?        @db.Decimal(10, 2)
+  price     Decimal?        @db.Decimal(10, 4)
+  createdAt DateTime        @default(now())
 }
 
 enum AssetType {

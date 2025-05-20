@@ -29,7 +29,5 @@ export const validateQuery = (req, res, next) => {
     });
   }
 
-  // req.query.fund_type = fund_type?.toUpperCase();
-
   next();
 };

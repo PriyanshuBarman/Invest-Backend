@@ -1,11 +1,11 @@
 import { asyncHandler } from "../../../utils/asyncHandler.utils.js";
-import { processInvestment } from "../services/investment.service.js";
+import * as investmentService from "../services/investment.service.js";
 
 export const handleInvest = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { investmentAmt, fundCode, fundName, purchaseNav, fundType } = req.body;
 
-  await processInvestment({
+  await investmentService.processInvestment({
     userId,
     investmentAmt,
     fundCode,

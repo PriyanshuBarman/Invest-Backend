@@ -1,7 +1,7 @@
 import { db } from "../../config/db.config.js";
 
 export const walletRepo = {
-  async check(userId) {
+  async checkBalance(userId) {
     try {
       const { balance } = await db.user.findUnique({
         where: { id: userId },
@@ -10,13 +10,13 @@ export const walletRepo = {
       return balance;
     } catch (error) {
       console.log(
-        `♾️Error occurred at Wallet repository - check method: ${error.message}`
+        `♾️Error occurred at Wallet repository - checkBalance method: ${error.message}`
       );
       throw error;
     }
   },
 
-  async credit(userId, amount) {
+  async creditBalance(userId, amount) {
     amount = Math.abs(amount);
     try {
       await db.user.update({
@@ -27,12 +27,12 @@ export const walletRepo = {
       });
     } catch (error) {
       console.log(
-        `♾️Error occurred at Wallet repository - check method: ${error.message}`
+        `♾️Error occurred at Wallet repository - checkBalance method: ${error.message}`
       );
     }
   },
 
-  async debit(userId, amount) {
+  async debitBalance(userId, amount) {
     amount = Math.abs(amount);
     try {
       await db.user.update({
@@ -43,7 +43,7 @@ export const walletRepo = {
       });
     } catch (error) {
       console.log(
-        `♾️Error occurred at Wallet repository - check method: ${error.message}`
+        `♾️Error occurred at Wallet repository - checkBalance method: ${error.message}`
       );
     }
   },

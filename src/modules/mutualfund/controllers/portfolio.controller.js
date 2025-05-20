@@ -1,12 +1,12 @@
 import { ApiError } from "../../../utils/ApiError.utils.js";
 import { asyncHandler } from "../../../utils/asyncHandler.utils.js";
-import { fetchFund, fetchPortfolio, fetchPortfolioSummary } from "../services/portfolio.service.js";
+import * as portfolioService from "../services/portfolio.service.js";
 
 export const getPortfolio = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { sort_by, order_by, fund_type } = req.query;
 
-  const portfolio = await fetchPortfolio({
+  const portfolio = await portfolioService.fetchPortfolio({
     userId,
     fundType: fund_type?.toUpperCase(),
     sort_by,
@@ -16,21 +16,23 @@ export const getPortfolio = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, sort_by, order_by, fund_type, portfolio });
 });
 
+
 export const getFund = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { fundCode } = req.params;
 
   if (!fundCode) throw new ApiError(400, "fundCode is required");
 
-  const fund = await fetchFund({ userId, fundCode });
+  const fund = await portfolioService.fetchFund({ userId, fundCode });
 
   return res.status(200).json({ success: true, fund });
 });
 
+
 export const getPortfolioSummary = asyncHandler(async (req, res) => {
   const { userId } = req.user;
 
-  const portfolio = await fetchPortfolioSummary({ userId });
+  const portfolio = await portfolioService.fetchPortfolioSummary({ userId });
 
   return res.status(200).json({ success: true, portfolio });
 });

@@ -9,7 +9,7 @@ import { calculateUpdatedPortfolio } from "../utils/purchase.utils.js";
 export const processPurchase = async (data) => {
   const { userId, symbol, stockName, price, quantity } = data;
 
-  const balance = await walletRepo.check(userId);
+  const balance = await walletRepo.checkBalance(userId);
 
   const investmentAmt = quantity * price;
 
@@ -17,6 +17,7 @@ export const processPurchase = async (data) => {
 
   const prevInv = await portfolioRepo.findUnique({ userId_symbol: { userId, symbol } });
 
+  // ------------------------------------------------------- Checking it's Fresh or Re investment
   if (!prevInv) {
     await portfolioRepo.create({
       userId,
@@ -31,9 +32,9 @@ export const processPurchase = async (data) => {
     const updatedValues = calculateUpdatedPortfolio(prevInv, investmentAmt, quantity);
     await portfolioRepo.update({ id: prevInv.id }, updatedValues);
   }
+  // ---------------------------------------------------------------------------------------------
 
   // Below are the Common Post-investment operations for both (Fresh or Re investment)
-
   await tnxRepo.create({
     userId,
     price,
@@ -56,5 +57,5 @@ export const processPurchase = async (data) => {
 
   await addToUserPortfolio({ userId, investmentAmt, portfolioType: "STOCK" }); // shared
 
-  await walletRepo.debit(userId, investmentAmt); // shared
+  await walletRepo.debitBalance(userId, investmentAmt); // shared
 };
