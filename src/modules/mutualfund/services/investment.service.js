@@ -6,7 +6,7 @@ import { calculateUpdatedPortfolio } from "../utils/investment.utils.js";
 
 // Main Handler
 export const processInvestment = async (data) => {
-  const { userId, investmentAmt, fundCode, fundName, purchaseNav, fundType } = data;
+  const { userId, investmentAmt, fundCode, fundName, purchaseNav, fundType, shortCode, shortName } = data;
 
   const balance = await walletRepo.checkBalance(userId);
   if (investmentAmt > balance) throw new ApiError(400, "Insufficient wallet balance");
@@ -28,6 +28,8 @@ export const processInvestment = async (data) => {
       marketValue: investmentAmt,
       investedAmt: investmentAmt,
       latestNav: purchaseNav,
+      shortCode,
+      shortName
     });
   } else {
     const updatedValues = calculateUpdatedPortfolio(

@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/wallet", walletRoutes);
 app.use("/api/v1/user", userRoutes);
-app.use("/api/v1/mf", mutualFundRoutes);
+app.use("/api/v1/mutual-funds", mutualFundRoutes);
 app.use("/api/v1/stock", stockRoutes);
 
 app.all("*", notFoundHandler);

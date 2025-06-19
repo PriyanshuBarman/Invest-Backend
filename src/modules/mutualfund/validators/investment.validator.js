@@ -1,7 +1,7 @@
 import { ApiError } from "../../../utils/ApiError.utils.js";
 
 export const validateInvestment = (req, res, next) => {
-  const { investmentAmt, fundCode, fundName, purchaseNav, fundType } = req.body;
+  const { investmentAmt, fundCode, fundName, purchaseNav, fundType, shortCode, shortName } = req.body;
 
   const requiredFields = [
     "investmentAmt",
@@ -9,6 +9,8 @@ export const validateInvestment = (req, res, next) => {
     "fundName",
     "purchaseNav",
     "fundType",
+    "shortCode",
+    "shortName"
   ];
 
   for (const field of requiredFields) {
@@ -17,7 +19,12 @@ export const validateInvestment = (req, res, next) => {
     }
   }
 
-  if (!investmentAmt || isNaN(investmentAmt) || investmentAmt <= 0)
+  if (
+    !investmentAmt ||
+    investmentAmt <= 0 ||
+    typeof investmentAmt !== "number" ||
+    isNaN(investmentAmt)
+  )
     throw new ApiError(400, "Invalid investmentAmt");
 
   next();

@@ -7,12 +7,13 @@ export const portfolioRoutes = Router();
 
 portfolioRoutes.get("/summary", isAuthenticated, portfolioController.getPortfolioSummary);
 
-portfolioRoutes.get("/:fundCode?", isAuthenticated, portfolioController.getFund);
-
 portfolioRoutes.get(
   "/",
   isAuthenticated,
   validateQuery,
   portfolioController.getPortfolio
 );
+
+portfolioRoutes.get("/:fundCode?", isAuthenticated, portfolioController.getFund);
+
 

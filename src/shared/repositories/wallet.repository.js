@@ -3,10 +3,11 @@ import { db } from "../../config/db.config.js";
 export const walletRepo = {
   async checkBalance(userId) {
     try {
-      const { balance } = await db.user.findUnique({
+      const  {balance}  = await db.user.findUnique({
         where: { id: userId },
         select: { balance: true },
       });
+      console.log(balance)
       return balance;
     } catch (error) {
       console.log(

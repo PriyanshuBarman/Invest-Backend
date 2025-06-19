@@ -9,7 +9,7 @@ export const addToUserPortfolio = async ({ userId, investmentAmt, portfolioType 
     userId_portfolioType: { userId, portfolioType },
   });
 
-  // If First Investment CREATE userPortfolio else UPDATE existing userPortfolio
+  // If First Investment, CREATE userPortfolio else UPDATE existing userPortfolio
   if (!userPortfolio) {
     await userPortfolioRepo.create({
       userId,
@@ -32,7 +32,7 @@ export const subtractUserPortfolio = async ({userId,amount,portfolioType,costBas
     userId_portfolioType: { userId, portfolioType },
   });
   
-  // If Last Redemption/Sell DELETE userPortfolio else UPDATE existing userPortfolio
+  // If Last Redemption/Sell, DELETE userPortfolio else UPDATE existing userPortfolio
   if (amount === userPortfolio.totalMv.toNumber()) {
      await userPortfolioRepo.delete({ id: userPortfolio.id });
   } else {

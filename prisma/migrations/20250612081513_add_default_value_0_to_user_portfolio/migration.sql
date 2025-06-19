@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `userportfolio` MODIFY `totalInv` DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    MODIFY `totalMv` DECIMAL(10, 2) NOT NULL DEFAULT 0;

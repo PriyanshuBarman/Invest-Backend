@@ -8,7 +8,7 @@ const client = new OAuth2Client(
   "postmessage"
 );
 
-export const signinWithGoogle = asyncHandler(async (req, res) => {
+export const googleAuth = asyncHandler(async (req, res) => {
   const { code } = req.body;
 
   const { tokens } = await client.getToken(code);
@@ -24,7 +24,10 @@ export const signinWithGoogle = asyncHandler(async (req, res) => {
 
   if (!existingUser) {
     await userRepo.create({ name, email, avatar: picture });
+    return res
+      .status(200)
+      .json({ success: true, message: "User Registered Successfully" });
   }
 
-  return res.status(200).json({ success: true, message: "User Registered Successfully" });
+  return res.status(200).json({ success: true, message: "Login Successful" });
 });
